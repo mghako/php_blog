@@ -5,6 +5,7 @@
     if(empty($_SESSION['user_id']) && empty($_SESSION['logged_in'])) {
       header('Location: login.php');
     }
+    
 ?>
 <!DOCTYPE html>
 <html>
@@ -36,16 +37,32 @@
             <h2>Blog</h2>
         </div>
         <?php 
+            if (!empty($_GET['pageno'])) {
+                $pageno = $_GET['pageno'];
+              } else {
+                $pageno = 1;
+              }
+              $numOfrecs = 6;
+              $offset = ($pageno -1) * $numOfrecs;
+              
+
             // just grab all posts
             $statement = $pdo->prepare("SELECT * FROM posts ORDER BY id DESC");
             $statement->execute();
             $rawResult = $statement->fetchAll();
+            // for pagination
+            $total_pages = ceil(count($rawResult) / $numOfrecs);
+
+            $statement = $pdo->prepare("SELECT * FROM posts ORDER BY id DESC LIMIT $offset,$numOfrecs");
+            $statement->execute();
+            $result = $statement->fetchAll();
+
         ?>
         <div class="row">
             <?php 
-                if($rawResult) {
+                if($result) {
                     $i=1;
-                    foreach($rawResult as $data) { ?>
+                    foreach($result as $data) { ?>
                         <div class="col-md-4">
                         <!-- Box Comment -->
                         <div class="card card-widget">
@@ -71,6 +88,24 @@
           
         </div>
         <!-- /.row -->
+        <div class="row">
+            <nav class="Page navigation">
+                <ul class="pagination float-right">
+                    <li class="page-item"><a href="?pageno=1" class="page-link">First</a></li>
+                    <li class="page-item <?php if($pageno <= 1) {echo 'disabled';} ?>">
+                    <a href="
+                        <?php if ($pageno <= 1) 
+                        {echo '#';} 
+                        else { echo "?pageno=".($pageno-1); } ?>" class="page-link">Previous</a>
+                    </li>
+                    <li class="page-item"><a href="#" class="page-link"><?php echo $pageno; ?></a></li>
+                    <li class="page-item <?php if($pageno >= $total_pages) {echo 'disabled';} ?>">
+                    <a href="<?php if ($pageno >= $total_pages) {echo '#';} else { echo '?pageno='.($pageno+1); } ?>" class="page-link">Next</a>
+                    </li>
+                    <li class="page-item"><a href="?pageno=<?php echo $total_pages; ?>" class="page-link">Last</a></li>
+                </ul>
+            </nav>
+        </div>
       </div><!-- /.container-fluid -->
     </section>
     <!-- /.content -->
