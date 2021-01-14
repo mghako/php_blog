@@ -1,3 +1,45 @@
+<?php 
+  require './config/config.php';
+  session_start();
+
+  if(empty($_SESSION['user_id']) && empty($_SESSION['logged_in'])) {
+    header('Location: login.php');
+  }
+  // get blog post details
+  $statement = $pdo->prepare("SELECT * FROM posts WHERE id=".$_GET['id']);
+  $statement->execute();
+  $result = $statement->fetchAll();
+
+  // get comments code
+  $statement = $pdo->prepare("SELECT * FROM comments WHERE post_id=".$_GET['id']);
+  $statement->execute();
+  $comments = $statement->fetchAll();
+
+  // get comments author
+  $statement = $pdo->prepare("SELECT * FROM users WHERE id=".$comments[0]['author_id']);
+  $statement->execute();
+  $author = $statement->fetchAll();
+
+  $post_id = $_GET['id'];
+
+  // store comments
+  if($_POST) {
+    
+    $comment = $_POST['comment'];
+    $statement = $pdo->prepare("INSERT INTO comments(content, author_id, post_id) VALUES (:content, :author_id, :post_id)");
+            $result = $statement->execute(
+                array(
+                    ':content' => $comment,
+                    ':author_id' => $_SESSION['user_id'],
+                    ':post_id' => $post_id,
+                )
+            );
+            if($result) {
+                header('Location: blogdetails.php?id='.$post_id);
+            }
+  }
+
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -30,44 +72,42 @@
             <!-- Box Comment -->
             <div class="card card-widget">
               <div class="card-header card-title clearfix">
-                <h4 class="text-center">Blog TItle</h4>
+                <h4 class="text-center"><?php echo $result[0]['title'] ?></h4>
               </div>
               <div class="card-body">
-                <img class="img-fluid pad" src="./dist/img/photo2.png" alt="Photo">
-                <p>I took this photo this morning. What do you guys think?</p>
+                <img class="img-fluid" src="./admin/images/<?php echo $result[0]['image'] ?>" alt="Photo">
+                <p><?php echo $result[0]['content'] ?></p>
+                <h3>Comments</h3> <hr>
+                <a href="index.php" type="button" class="btn btn-default">Go Back</a>
               </div>
               <!-- /.card-body -->
               <div class="card-footer card-comments">
+                <!-- comment section -->
                 <div class="card-comment">
-                  <!-- User image -->
-                  <img class="img-circle img-sm" src="./dist/img/user3-128x128.jpg" alt="User Image">
-
-                  <div class="comment-text">
+                  <div class="comment-text ml-0">
                     <span class="username">
-                      Maria Gonzales
-                      <span class="text-muted float-right">8:03 PM Today</span>
+                      <?php echo $author[0]['name']; ?>
+                      <span class="text-muted float-right"><?php echo $comments[0]['created_at']; ?></span>
                     </span><!-- /.username -->
-                    It is a long established fact that a reader will be distracted
-                    by the readable content of a page when looking at its layout.
+                    <?php echo $comments[0]['content']; ?>
                   </div>
                   <!-- /.comment-text -->
                 </div>
-                <!-- /.card-comment -->
+                
+              </div>
+              <div class="card-footer">
+                <!-- comment section -->
                 <div class="card-comment">
-                  <!-- User image -->
-                  <img class="img-circle img-sm" src="./dist/img/user4-128x128.jpg" alt="User Image">
-
-                  <div class="comment-text">
-                    <span class="username">
-                      Luna Stark
-                      <span class="text-muted float-right">8:03 PM Today</span>
-                    </span><!-- /.username -->
-                    It is a long established fact that a reader will be distracted
-                    by the readable content of a page when looking at its layout.
+                  <div class="comment-text ml-0">
+                    <form action="" method="POST">
+                    <div>
+                      <input type="text" name="comment" class="form-control" placeholder="Type comments... and Press Enter...">
+                    </div>
+                    </form>
                   </div>
                   <!-- /.comment-text -->
                 </div>
-                <!-- /.card-comment -->
+                
               </div>
             </div>
             <!-- /.card -->
@@ -84,7 +124,7 @@
   </div>
   <!-- /.content-wrapper -->
 
-  <footer class="main-footer">
+  <footer class="container">
     <div class="float-right d-none d-sm-block">
       <b>Version</b> 3.0.5
     </div>

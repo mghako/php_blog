@@ -1,3 +1,11 @@
+<?php 
+    require './config/config.php';
+    session_start();
+  
+    if(empty($_SESSION['user_id']) && empty($_SESSION['logged_in'])) {
+      header('Location: login.php');
+    }
+?>
 <!DOCTYPE html>
 <html>
 <head>
@@ -25,54 +33,42 @@
     <section class="content">
       <div class="container">
         <div class="row d-flex justify-content-center align-items-center">
-            <h2>Contents</h2>
+            <h2>Blog</h2>
         </div>
+        <?php 
+            // just grab all posts
+            $statement = $pdo->prepare("SELECT * FROM posts ORDER BY id DESC");
+            $statement->execute();
+            $rawResult = $statement->fetchAll();
+        ?>
         <div class="row">
-          <div class="col-md-4">
-            <!-- Box Comment -->
-            <div class="card card-widget">
-              <div class="card-header card-title clearfix">
-                <h4 class="text-center">saimon</h4>
-              </div>
-              <!-- /.card-header -->
-              <div class="card-body">
-                <img class="img-fluid pad" src="./dist/img/photo2.png" alt="Photo">
+            <?php 
+                if($rawResult) {
+                    $i=1;
+                    foreach($rawResult as $data) { ?>
+                        <div class="col-md-4">
+                        <!-- Box Comment -->
+                        <div class="card card-widget">
+                        <div class="card-header card-title clearfix">
+                            <h4 class="text-center"><?php echo $data['title']; ?></h4>
+                        </div>
+                        <!-- /.card-header -->
+                        <div class="card-body">
+                            <div style="width: 200px; height: 150px; overflow:hidden;">
+                                <a href="blogdetails.php?id=<?php echo $data['id'] ?>" class="w-full d-block">
+                                    <img src="./admin/images/<?php echo $data['image'] ?>" alt="Image" class="d-block mx-auto text-center img-fluid">
+                                </a>
+                            </div>
 
-                <p>I took this photo this morning. What do you guys think?</p>
-              </div>
-            </div>
-            <!-- /.card -->
-          </div>
-          <div class="col-md-4">
-            <!-- Box Comment -->
-            <div class="card card-widget">
-              <div class="card-header card-title clearfix">
-                <h4 class="text-center">saimon</h4>
-              </div>
-              <!-- /.card-header -->
-              <div class="card-body">
-                <img class="img-fluid pad" src="./dist/img/photo2.png" alt="Photo">
-
-                <p>I took this photo this morning. What do you guys think?</p>
-              </div>
-            </div>
-            <!-- /.card -->
-          </div>
-          <div class="col-md-4">
-            <!-- Box Comment -->
-            <div class="card card-widget">
-              <div class="card-header card-title clearfix">
-                <h4 class="text-center">saimon</h4>
-              </div>
-              <!-- /.card-header -->
-              <div class="card-body">
-                <img class="img-fluid pad" src="./dist/img/photo2.png" alt="Photo">
-
-                <p>I took this photo this morning. What do you guys think?</p>
-              </div>
-            </div>
-            <!-- /.card -->
-          </div>
+                            <p><?php echo substr($data['content'], 0, 200). '...' ?></p>
+                        </div>
+                        </div>
+                        <!-- /.card -->
+                    </div>
+                <?php   }
+                }
+            ?>
+          
         </div>
         <!-- /.row -->
       </div><!-- /.container-fluid -->

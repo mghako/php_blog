@@ -38,14 +38,16 @@
                 } else {
                   $pageno = 1;
                 }
-                $numOfrecs = 1;
+                $numOfrecs = 5;
                 $offset = ($pageno -1) * $numOfrecs;
 
                 if(empty($_POST['search'])) {
 
+                  // just grab all posts
                   $statement = $pdo->prepare("SELECT * FROM posts ORDER BY id DESC");
                   $statement->execute();
                   $rawResult = $statement->fetchAll();
+                  // for pagination
                   $total_pages = ceil(count($rawResult) / $numOfrecs);
 
                   $statement = $pdo->prepare("SELECT * FROM posts ORDER BY id DESC LIMIT $offset,$numOfrecs");
@@ -53,6 +55,7 @@
                   $result = $statement->fetchAll();
 
                 } else {
+                  // search title by users
                   $searchKey = $_POST['search'];
                   $statement = $pdo->prepare("SELECT * FROM posts WHERE title LIKE '%$searchKey%' ORDER BY id DESC");
                   $statement->execute();
