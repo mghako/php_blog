@@ -14,11 +14,22 @@
   $statement = $pdo->prepare("SELECT * FROM comments WHERE post_id=".$_GET['id']);
   $statement->execute();
   $comments = $statement->fetchAll();
+  
+  $authorResult= [];
+
+  if($comments) {
+    foreach ($comments as $key => $value) {
+      $authorId = $comments[$key]['author_id'];
+      $statementAuthor = $pdo->prepare("SELECT * FROM users WHERE id=$authorId");
+      $statementAuthor->execute();
+      $authorResult[] = $statementAuthor->fetchAll();
+    }
+  }
 
   // get comments author
-  $statement = $pdo->prepare("SELECT * FROM users WHERE id=".$comments[0]['author_id']);
-  $statement->execute();
-  $author = $statement->fetchAll();
+  // $statement = $pdo->prepare("SELECT * FROM users WHERE id=".$comments[0]['author_id']);
+  // $statement->execute();
+  // $author = $statement->fetchAll();
 
   $post_id = $_GET['id'];
 
@@ -64,7 +75,7 @@
   <!-- Content Wrapper. Contains page content -->
   <div class="">
     <!-- Main content -->
-    <section class="content">
+    <section class="content mt-4">
       <div class="container">
         
         <div class="row">
@@ -78,22 +89,30 @@
                 <img class="img-fluid" src="./admin/images/<?php echo $result[0]['image'] ?>" alt="Photo">
                 <p><?php echo $result[0]['content'] ?></p>
                 <h3>Comments</h3> <hr>
-                <a href="index.php" type="button" class="btn btn-default">Go Back</a>
+                <a href="index.php" type="button" class="btn btn-info">Go Back</a>
               </div>
               <!-- /.card-body -->
               <div class="card-footer card-comments">
                 <!-- comment section -->
                 <div class="card-comment">
-                  <div class="comment-text ml-0">
-                    <span class="username">
-                      <?php echo $author[0]['name']; ?>
-                      <span class="text-muted float-right"><?php echo $comments[0]['created_at']; ?></span>
-                    </span><!-- /.username -->
-                    <?php echo $comments[0]['content']; ?>
-                  </div>
+                  <?php if ($comments) {?>
+                    <div class="comment-text ml-0">
+                      <?php foreach ($comments as $key => $value) { ?>
+                        <span class="username">
+                          <?php echo $authorResult[$key][0]['name']; ?>
+                          <span class="text-muted float-right"><?php echo $value['created_at']; ?></span>
+                        </span><!-- /.username -->
+                        <?php echo $value['content']; ?><br> <hr>
+                      <?php
+                      }
+                      ?>
+                      
+                    </div>
+                  <?php
+                  }
+                  ?>
                   <!-- /.comment-text -->
-                </div>
-                
+                </div>               
               </div>
               <div class="card-footer">
                 <!-- comment section -->
@@ -124,12 +143,18 @@
   </div>
   <!-- /.content-wrapper -->
 
-  <footer class="container">
-    <div class="float-right d-none d-sm-block">
-      <b>Version</b> 3.0.5
+  <footer>
+    <div class="container">
+      <div class="row">
+        <div class="col-md-10 mx-auto">
+          <div class="float-right d-none d-sm-block">
+            <b>Version</b> Beta
+          </div>
+          <strong>Copyright &copy; 2021 <a href="#">Blog</a>.</strong> All rights
+          reserved.
+        </div>
+      </div>
     </div>
-    <strong>Copyright &copy; 2014-2019 <a href="#">AdminLTE.io</a>.</strong> All rights
-    reserved.
   </footer>
 
   <!-- Control Sidebar -->

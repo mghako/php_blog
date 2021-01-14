@@ -6,7 +6,7 @@
     header('Location: login.php');
   }
 ?>
-<?php include('./include/header.html') ?>
+<?php include('./include/header.php') ?>
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
